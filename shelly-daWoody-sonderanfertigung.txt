@@ -1,0 +1,551 @@
+ //@liv-in-sky 2021  8.3.-19:11
+ 
+// DAS WIDGET IN DER VIS
+// das Standard html-Widget wird genutzt in der VIS - dazu den DP javascript.x.Tabellen@Liv.TestTabelleVIS.HTMLTableVis als binding angeben d.h.
+// im html-teil des widgets wird dier daten punkt in geschweiften klammern angegeben z.B. {javascript.0.Tabellen@Liv.TestTabelleVIS.HTMLTableVis}
+ 
+// @ts-ignore
+let braucheEinVISWidget=true;                          // bei true wird ein html-tabelle in einen dp geschrieben - siehe nächste zeile
+let  dpVIS="ShellyTabelleVIS"                            // WICHTIG wenn braucheEinVISWidget auf true gesetzt !!  Ist der Name zum datenpunkt anlegen
+let braucheEinJSON=false;                               // bei true wird ein html-tabelle in einen dp geschrieben - siehe nächste zeile
+let  dpJSON="ShellyTabelleJSON"                          // WICHTIG wenn braucheEinJSON auf true gesetzt !!   Ist der Name zum datenpunkt anlegen
+let mySchedule="  */15 * * * * ";                         // jede minute  
+ 
+//ZUSÄTZLICH VARIABLEN
+ 
+let sortierenEIN=true;
+let farbeInaktiverShelly="#5590CA"
+let welcheSortierung=2;          // je nach spalte von 0 bis 6
+let geteiteVersionsAnzeige=true; // version in spalte 7 wird 2-zeilig
+const schalterUmrahmung="1"                              //wenn überschriften buttons sind , den rahmen mit 0 wegmachen
+ let ipButtonColorONBkground="#CBCBCA"; 
+ let powerButtonColorONSchrift="black";
+  let ipButtonColorONBkground2="#5590CA"; 
+ let powerButtonColorONSchrift2="white";
+ 
+//---------------------------------------
+ 
+//HIER DIE SPALTEN ANZAHL DEFINIEREN - jede Spalte einen Wert - in diesem Beispiel sind es 3 - es MÜSSEN in allen Arrays die GLEICHE Anzahl für die Werte sein
+let val=             ["dummy1","dummy2","dummy3","dummy4","dummy5","dummy6","dummy7"];             // GLEICHE ANZAHL !! HIER SIND DIE  WERTE, DIE IN DER SCHLEIFE GEFILTERET WERDEN -  jeder val[x] muss unten in der schleife gesetzt werden !!
+let Feld1lAlign=     ["center","center","center","center","center","center","center"];                     // GLEICHE ANZAHL !! AUSRICHTUNG IN DER SPALTE
+let htmlSpalte1Weite=["auto","auto","auto","100px","auto","auto","auto"];                             // GLEICHE ANZAHL !! BREITE DER SPALTE, wenn nicht auto
+let htmlFeld=        ["NAME","IP","ONLINE","UPTIME","RSSI","ID","VERSION"];                        // GLEICHE ANZAHL !! NAME/ÜBERSCHRIFT DER SPALTE
+let schalterInSpaltenUeberschrift=[true,true,true,true,true,true,true];                            // WENN BUTTONS INSTALLIERT WERDEN - sonst false
+let symbolSchalter=               ["na","&check;","&cross;"];   // SYMBOLE DER BUTTONS - standardmäßig sind die spaltennamen (htmlFeld) genutzt - werden im standard nicht genutzt
+//-----------------------------------
+ 
+//Symbole für Tabelle z.b.: ⚪  ⚫ ⭕  🔴 🔵 ⏱ 💀 👍 👎 📑 💲 👀 🔹 ✅ ❌ ⚠️ mehr: https://emojiterra.com/de/ oder https://unicode-table.com/de/html-entities/
+ 
+//hier werden die styles für die tabelle definiert
+//ÜBERSCHRIFT ÜBER TABELLE
+const htmlUberschrift=true;                             // mit Überschrift über der tabelle
+const htmlSignature=false;                               // anstatt der Überscghrift eine signature: - kleiner - anliegend
+const htmlFeldUeber='Shelly Übersicht';                // für Überschrift und Signature falls htmlUberschrift und htmlSignature ist true
+const htmlFarbUber="white";                              // Farbe der Überschrift
+const htmlSchriftWeite="bold";                         // bold, normal - Fettschrift für Überschrift
+const htmlUEberFontGroesse="20px";                       // schriftgröße überschrift
+//SEITENLEISTE
+const ichWillSeitenLeiste=true;                          // links einblenden einer Seitenleiste
+const nameSeitenLeiste="SHELLY"
+const breiteSeitenleiste=25;
+const schriftGroesseSeitenleiste=18;
+const abstandSeitentextVonOben=6;
+const htmlFarbSeiteSchrift="white";
+const htmlBackgroundFarbeSeitenliste="transparent";
+//MEHRERE TABELLEN NEBENEINANDER
+let mehrfachTabelle=2;                                   // bis zu 3 Tabellen werden nebeneinander geschrieben-  verkürzt das Ganze, dafür etwas breiter - MÖGLICH 1,2,3 !!!
+const trennungsLinie="0";                                // extra trennungslinie bei mehrfachtabellen - evtl auf 0 stellen, wnn htmlRahmenLinien auf none sind
+const farbetrennungsLinie="#5590CA";                     // bei mehreren Tabellen nebeneinander wird ein Strich zw. den Tabellen gezogen
+const htmlFarbTableColorUber="white"                     // Spalten-Überschrift in der tabelle - für die einzelnen Spalten //"#BDBDBD"; 
+const htmlFarbZweiteTabelle="white";                     // Farbe der Spalten-Überschrift bei jeder 2.ten Tabelle        
+//ÜBERSCHRIFT SPALTEN - OBERSTE ZEILE IN TAB
+const UeberSchriftHoehe="40";                            // Überschrift bekommt mehr Raum - darunter und darüber - Zellenhöhe
+const LinieUnterUeberschrift="1";                        // Liniehoehe nur unter Spaltenüberschrift  
+const farbeLinieUnterUeberschrift="blue";                // LinienFarbe unter Spaltenüberschrift
+const groesseUeberschrift=16; 
+const UeberschriftStyle="normal"                         // möglich "bold"
+const UeberschriftSpalten=true;                          // ein- oder ausblenden der spatlen-überschriften
+//GANZE TABELLE
+const abstandZelle="7";                                  // legt den abstand in den zellen zum rahmen fest
+const zeilenAbstand=3;                                   // legt den abstand zwischen den zeilen fest
+const farbeUngeradeZeilen="#000000";                     // Farbe für ungerade Zeilenanzahl - Hintergrund der Spaltenüberschrift bleibt bei htmlFarbTableColorGradient1/2 - bei "transparent" gewinnt htmlFarbTableColorGradient1
+const farbeGeradeZeilen="#151515";                       // Farbe für gerade Zeilenanzahl - Hintergrund der Spaltenüberschrift bleibt bei htmlFarbTableColorGradient1/2   - bei "transparent" gewinnt htmlFarbTableColorGradient2
+const weite="auto";                                      // Weite der Tabelle - verhindert das dynamische breiter werden, wenn werte unterschiedliche werte haben
+const zentriert=true;                                    // ganze tabelle zentriert im html Widget
+const backgroundAll="#000000";                           // Hintergrund für die ganze Seite - für direkten aufruf oder iqontrol sichtber - keine auswirkung auf vis-widget
+const htmlSchriftart="Garamond"                          // "Jura-DemiBold"   //"RobotoCondensed-Bold"   //"Helvetica"; .....
+const htmlSchriftgroesse="18px";                         // schriftgröße in den zellen
+const rahmenBreite="2px";                                //mit 0 ist äußerer rahmen weg
+//FELDER UND RAHMEN
+const htmlFarbFelderschrift="#CBCBCA";                   // SchriftFarbe der Felder
+const htmlFarbFelderschrift2="#CBCBCA";                  // SchriftFarbe der Felder für jede 2te Tabelle
+const htmlGragient=[150,5,20];                          // einstellung des gradienten
+const htmlFarbTableColorGradient1="#1931D8";             // Gradient - Hintergrund der Tabelle - Verlauffarbe
+const htmlFarbTableColorGradient2="#5b6bdb";              // Gradient - Hintergrund der Tabelle - ist dieser Wert gleich Gradient1 gibt es keinen verlauf  
+const htmlFarbTableBorderColor="grey";                   // Farbe des Rahmen - ist dieser gleich den gradienten, sind die rahmen unsichtbar
+let htmlRahmenLinien="rows";                             // Format für Rahmen: MÖGLICH: "none" oder "all" oder "cols" oder "rows"
+ 
+// falls eine extra html datei gebraucht wird
+const path = "/htmlexample.html";                        //FIlenamen definieren
+const home ='vis.0'                                      //wo soll das file im iobroker-file-system liegen ? (oder z.b auch iqontrol.meta)
+let   braucheEinFile=false;                              // bei true wird ein file geschrieben
+ 
+// AB HIER NICHTS  ÄNDERN -------------------------------------------------------------------------------------------------
+// AB HIER NICHTS  ÄNDERN -------------------------------------------------------------------------------------------------
+// AB HIER NICHTS  ÄNDERN ---------------------------------erst wieder ab Zeile 134----------------------------------------
+ 
+let borderHelpBottum;
+let borderHelpRight;
+let htmlcenterHelp;
+let htmlcenterHelp2;
+ 
+if(String(htmlRahmenLinien)=="rows") {borderHelpBottum=1;borderHelpRight=0;}
+if(String(htmlRahmenLinien)=="cols") {borderHelpBottum=0;borderHelpRight=1;}
+if(String(htmlRahmenLinien)=="none") {borderHelpBottum=0;borderHelpRight=0;}
+if(String(htmlRahmenLinien)=="all")  {borderHelpBottum=1;borderHelpRight=1;}
+zentriert ? htmlcenterHelp="auto" : htmlcenterHelp="left";
+zentriert ? htmlcenterHelp2="center" : htmlcenterHelp2="left";
+ 
+ 
+const htmlZentriert='<center>'
+const htmlStart=    "<!DOCTYPE html><html lang=\"de\"><head><title>Vorlage</title><meta http-equiv=\"content-type\" content=\"text/html;  http-equiv=\"refresh\" content=\"30\"; charset=utf-8\">"+
+                   "<style> * {  margin: 0;} body {background-color: "+backgroundAll+"; margin: 0 auto;  }"+
+                   " p {padding-top: 10px; padding-bottom: 10px; text-align: "+htmlcenterHelp2+"}"+
+                  // " div { margin: 0 auto;  margin-left: auto; margin-right: auto;}"+
+                   " td { padding:"+abstandZelle+"px; border:0px solid "+htmlFarbTableBorderColor+";  border-right:"+borderHelpRight+"px solid "+htmlFarbTableBorderColor+";border-bottom:"+borderHelpBottum+"px solid "+htmlFarbTableBorderColor+";}"+ 
+                   " table { width: "+weite+";  margin: 0 "+htmlcenterHelp+"; border:1px solid "+htmlFarbTableBorderColor+"; border-spacing=\""+abstandZelle+"0px\" ; }"+   // margin macht center
+                   "td:nth-child(1) {width: "+htmlSpalte1Weite[0]+"}"+"td:nth-child(2) {width:"+htmlSpalte1Weite[1]+"}"+
+                   " </style></head><body> <div>";
+//const htmlUeber=    "<p style=\"color:"+htmlFarbUber+"; font-family:"+htmlSchriftart+"; font-weight: bold\">"+htmlFeldUeber+"</p>";                    
+const htmlTabStyle= "<table bordercolor=\""+htmlFarbTableBorderColor+"\" border=\""+rahmenBreite+"\" cellspacing=\""+abstandZelle+"\" cellpadding=\""+zeilenAbstand+"\" width=\""+weite+"\" rules=\""+htmlRahmenLinien+"\" style=\"color:"+htmlFarbFelderschrift+";  font-size:"+htmlSchriftgroesse+
+                      "; font-family:"+htmlSchriftart+";background-image: linear-gradient("+htmlGragient[0]+"deg,"+htmlFarbTableColorGradient2+" "+htmlGragient[1]+"%,"+htmlFarbTableColorGradient1+" "+htmlGragient[2]+"%);\">";
+let htmlTabUeber4="<tr style=\" font-family:"+htmlSchriftart+" ; height:"+UeberSchriftHoehe+"px; color:"+htmlFarbTableColorUber+"; font-size: "+groesseUeberschrift+"px; font-weight: "+UeberschriftStyle+" ; border-bottom: "+LinieUnterUeberschrift+"px solid "+farbeLinieUnterUeberschrift+" \">"; 
+const htmlTabUeber3="</tr>";
+ 
+ 
+const buttonScript =   '<script> function setOnOtherValue(myval) {	console.log("XXX"); var Self = this;	if(typeof self.servConn == "object") Self.servConn.getStates(myval, (error, states) => {  console.log(states); self.servConn.setState(myval, !states[myval].val);}  ); else window.parent.postMessage({ command: "setState", stateId: myval, value: true }, "*"); } '
+                     +'var buttons = document.getElementsByTagName("button");'
+                     +'for(i = 0; i < buttons.length; i++){ buttons[i].style.overflow = "hidden"; buttons[i].style.height = buttons[i].scrollHeight + "px"; buttons[i].style.transition = "height 0.5s"; buttons[i].addEventListener("click", function(){ this.style.height = 0; }) };'
+                     +'</script>'
+ 
+ 
+//NICHTS ÄNDERN - abhängig von den oben definierten _Spalten - in diesem Beispiel sind es 3
+ 
+ 
+ 
+let  htmlTabUeber2_1=""
+for (let ue=0;ue<htmlSpalte1Weite.length;ue++) { htmlTabUeber2_1=htmlTabUeber2_1.concat("<td width="+htmlSpalte1Weite[ue]+" align="+Feld1lAlign[ue]+" style=\"color:"+htmlFarbZweiteTabelle+"\">"+htmlFeld[ue]+"</td>")}
+ 
+//------------------------------------------------------
+if ( !(val.length == Feld1lAlign.length && htmlSpalte1Weite.length == htmlFeld.length && val.length == htmlFeld.length) || (mehrfachTabelle<1 || mehrfachTabelle>3) ) 
+     { log("Anzahle der Definitions Arrays sind ungleich ODER mehrfachTabelle ist falsch - Script wurde gestoppt !!!","error");
+         // @ts-ignore
+         stopScript();}
+ 
+let langeGesamt=0; 
+let htmlTabUeber="";
+let htmlOut="";
+let mix;
+let counter;
+let makeJsonWidget;
+let myObject=[];
+let aktiv=0; let inaktiv=0;
+let mitAlphabet=false;
+ 
+needDP();
+ 
+function writeHTML(){
+      aktiv=0;  inaktiv=0;
+    aktiv=0;  inaktiv=0;
+let seitenLeistenTest="";
+let htmlTabUeber1=htmlTabUeber4
+myObject=[]
+let helperLeerzeile=""
+let makeJsonWidget=[];
+htmlOut="";
+counter=-1;
+ 
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+//---------hier kommt eure schleife rein counter++, tabelleBind() und tabelleFinish() müssen so integriert bleiben !!!------------------------------
+//---------alle val[x] werte müssen von euch bestimmt werden - val[0],val[1],val[2] !!!-------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+ 
+let valueuptime
+ 
+$('shelly.*.*.name').each(function(id, i) {           // hier eigene schleife definieren und den wert counter++ nicht vergessen  !!!
+     
+ 
+ 
+          var ida = id.split('.');
+     
+       //   if(existsState(id) && existsState(id.replace("alive","uptime"))) {
+ 
+          getState(id).val!=null &&  getState(id).val!="" && getState(id).val!=undefined ?val[0]=getState(id).val : val[0]=" --- ";
+         
+         if (existsState(id.replace("name","hostname"))) val[1]=getState(id.replace("name","hostname")).val;
+         if (existsState(id.replace("name","online"))) val[2]=getState(id.replace("name","online")).val;
+         if (existsState(id.replace("name","uptime"))) val[3]=getState(id.replace("name","uptime")).val;
+         valueuptime=(Number(val[3].replace(/.*?([0-9][0-9]?)\:.*/,"$1"))*60*60)+
+                          (Number(val[3].replace(/.*?[0-9][0-9]?\:([0-9][0-9]?)\:.*/,"$1"))*60)+
+                          (Number(val[3].replace(/.*?[0-9][0-9]?\:[0-9][0-9]?\:([0-9][0-9]?).*/,"$1")))
+                       //   log(typeof val[3].replace(/^(.+)D.+/,"$1"))
+                          if( !val[3].replace(/^(.+)D.+/,"$1").includes(":")) valueuptime=valueuptime+Number(val[3].replace(/^(.+)D.+/,"$1"))*24*60*60
+                         // log(valueuptime.toString()+"  ----" +val[3].replace(/^(.+)D.+/,"$1"))
+ 
+         if (existsState(id.replace("name","rssi"))) val[4]=getState(id.replace("name","rssi")).val;
+         if (existsState(id.replace("name","id"))) val[5]=getState(id.replace("name","id")).val;
+ 
+         if (existsState(id.replace("name","version"))) val[6]=getState(id.replace("name","version")).val;                   
+     
+ 
+        myObject.push({                "value0" : val[0],            //  "INSTANCE"
+                                       "value1" : val[1],            //  "SINCE"
+                                       "value2" : val[2],            //  "STATUS"
+                                       "value3" : val[3],            //  "INSTANCE"
+                                       "value4" : val[4],            //  "SINCE"
+                                       "value5" : val[5],
+                                       "value6":  val[6],
+                                       "valueuptime": valueuptime
+                                          //   ID
+                                                       })
+               
+          makeJsonWidget.push({        [htmlFeld[0]] : val[0],  //  "INSTANCE"
+                                       [htmlFeld[1]] : val[1],  //  "SINCE"
+                                       [htmlFeld[2]] : val[2],   //  "STATUS"
+                                       "vallly"      : getState(id).val
+                                                       })  
+        
+          
+         
+                                                 // diese function muss als letztes in der eigenen schleife aufgerufen werden
+   });                                            // Schleifen Ende - je nach schleifenart muss hier etwas geändert werden !!!!!!!!!
+ 
+  // Sortierungen---------------------------------------------------------
+  //welcheSortierung=3
+  
+ 
+  if( sortierenEIN && (welcheSortierung==3 || welcheSortierung==4 || welcheSortierung==1)    ) {
+             if(welcheSortierung==3) myObject.sort(function (alpha, beta) { return  Number(beta["value4"]) -Number(alpha["value4"]);   }); 
+             if(welcheSortierung==4) myObject.sort(function (alpha, beta) { /*log(beta.valueuptime+" --" +alpha.valueuptime);*/ return  beta.valueuptime -alpha.valueuptime;   });
+             if(welcheSortierung==1)   myObject.sort( function( a, b )   {
+                                         	a = a["value1"].split( '.' );
+                                         	b = b["value1"].split( '.' );
+                                       	for( var i = 0; i < a.length; i++ )	{
+   	                                 	if( ( a[i] = parseInt( a[i] ) ) < ( b[i] = parseInt( b[i] ) ) )
+   	                         		return -1;	else if( a[i] > b[i] )
+   	                            	return 1;}  	return 0;} );     
+ 
+             } else {
+    switch (welcheSortierung) {
+       case 0: sortMe("alpha","value0");break;  
+       case 1: break;
+       case 2: sortMe("bool","value2");break;  
+       case 3: break;  
+       case 4: break;  
+       case 5: sortMe("alpha","value5");break; 
+       case 6: sortMe("alpha","value6");break;
+    }   }
+ 
+   for(let zz=0;zz<myObject.length;zz++){
+ 
+ // Unterüberschften ------------------------------------------------------       
+        if (mitAlphabet){
+          if( myObject[zz].value0[0]!=helperLeerzeile){ tabelleAusbessern();
+                                                        counter=-1;  for(let ic=0;ic<mehrfachTabelle;ic++ ) { for (let tt=0 ;tt<val.length;tt++) 
+                                                                                                                  { tt==0 && ic==0 ? val[tt]=(myObject[zz].value0[0]).toUpperCase() : val[tt]="&ensp;"
+                                                                                                                  }   
+                                                                                                              counter++;tabelleBind();langeGesamt++; }
+          helperLeerzeile=myObject[zz].value0[0] } ; sortierenEIN=false;}
+ 
+ // Zuteilung der Tabellenspalten-------------------------------------------
+ 
+    val[0]=myObject[zz].value0
+    val[1]=myObject[zz].value1
+     myObject[zz].value2 ? val[1]= `<a href="http://${val[1]}" target="_blank"><button style="border:0px solid\; text-align:center;  border-radius: 5px; background: ${ipButtonColorONBkground}\; color: ${powerButtonColorONSchrift}; font-size :75%; ">${val[1]}</button> </a>`:
+              val[1]= `<a href="http://${val[1]}" target="_blank"><button style="border:0px solid\; text-align:center;  border-radius: 5px; background: ${ipButtonColorONBkground2}\; color: ${powerButtonColorONSchrift2}; font-size :75%; ">${val[1]}</button> </a>`
+    val[2]=myObject[zz].value2;
+    let regH=myObject[zz].value3.trim().replace(/^(.+)[C-E].+?$/,"$1 d")
+    if(regH.includes(":")) regH="";
+    //log(myObject[zz].value3.replace(reg,"$1 d"))
+    geteiteVersionsAnzeige ? val[3]=( (myObject[zz].value3.replace(/.+D(.+)/,"$1"))+"</br>"+regH)  :  val[3]=myObject[zz].value3.replace(/(.+D)(.*)/,"$2 +$1");
+    val[4]=myObject[zz].value4+" dB";
+    val[5]=myObject[zz].value5;
+    geteiteVersionsAnzeige ? val[6]=myObject[zz].value6.replace(/^(.+?)\/(.+)/,"$1</br>$2")  : val[6]=myObject[zz].value6;  
+    
+    
+    if (!myObject[zz].value2) {val[2]=symbolSchalter[2];inaktiv++}
+    if (myObject[zz].value2)  {val[2]=symbolSchalter[1];aktiv++}
+   //  if(getState("javascript." + instance +".Tabellen@Liv."+dpVIS+".Spalte2").val) { val[2]=myObject[zz].value2} 
+    if (!myObject[zz].value2) {     val[0]="<font color=\""+farbeInaktiverShelly +"\">"+val[0]+"</font>";
+                                   val[1]="<font color=\""+farbeInaktiverShelly +"\">"+val[1]+"</font>";
+                                   val[2]="<font color=\""+farbeInaktiverShelly +"\">"+val[2]+"</font>";
+                                   val[3]="<font color=\""+farbeInaktiverShelly +"\">"+val[3]+"</font>";
+                                   val[4]="<font color=\""+farbeInaktiverShelly +"\">"+val[4]+"</font>";
+                                   val[5]="<font color=\""+farbeInaktiverShelly +"\">"+val[5]+"</font>";
+                                   val[6]="<font color=\""+farbeInaktiverShelly +"\">"+val[6]+"</font>";
+ 
+                              }  
+     counter++;                                       // SEHR WICHTIG - MUSS IN JEDER SCHLEIFE INTEGRIERT SEIN
+     tabelleBind();                                   // HIER NICHTS ÄNDERN : HIER WERDEN DIE DATEN DER SCHLEIFE ZUSAMMENGESETZT  
+     langeGesamt++;                                   // WICHTIG Seitenleiste
+   }
+ 
+//-------------------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------Ende der schleife------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------------------------------------------------
+ 
+// Seitenleiste------------------------------------------------------------  
+ let htmlTabUeber2=""
+let langeSpalten=htmlSpalte1Weite.length;
+for (let ue=0;ue<htmlSpalte1Weite.length;ue++) { if (!schalterInSpaltenUeberschrift[ue] ) { 
+                   htmlTabUeber2=htmlTabUeber2.concat("<td width="+htmlSpalte1Weite[ue]+" align="+Feld1lAlign[ue]+" style=\"color:"+htmlFarbTableColorUber+"\">"+htmlFeld[ue]+"</td>")} 
+                   else {let valButton="javascript." + instance + ".Tabellen@Liv."+dpVIS+".Spalte"+ue;
+                    if(ue==htmlSpalte1Weite.length-1) {htmlTabUeber2=htmlTabUeber2.concat("<th width="+htmlSpalte1Weite[ue]+" align="+Feld1lAlign[ue]+">"+""+
+                                                                  "<button class=\"myButt"+dpVIS+"\" style=\" border-radius: 4px; border:"+schalterUmrahmung+"px solid; background-color\: "+htmlBackgroundFarbeSeitenliste+"\; color: "
+                                                                  +htmlFarbTableColorUber+"; font-family: "+htmlSchriftart+"; font-size :"+groesseUeberschrift+"px; text\-align:left\" value=\"toggle\" onclick=\"setOnOtherValue\(\'"+valButton+"\')\">"
+                                                                  +htmlFeld[ue]+"</button>"+" <font style=\"; font-weight: normal; font-size :"+groesseUeberschrift+"; color: "+htmlFarbTableColorUber+"; font-family: "+htmlSchriftart+";\" > &ensp;&ensp;&ensp;&ensp;("+aktiv+"\/"+(aktiv+inaktiv)+")</th>")} else{
+                                       htmlTabUeber2=htmlTabUeber2.concat("<th width="+htmlSpalte1Weite[ue]+" align="+Feld1lAlign[ue]+">"+""
+                                                                   +"<button class=\"myButt"+dpVIS+"\" style\=\" border-radius: 4px; border:"+schalterUmrahmung+"px solid; background-color\: "+htmlBackgroundFarbeSeitenliste+"\; color: "
+                                                                   +htmlFarbTableColorUber+"; font-family: "+htmlSchriftart+"; font-size :"+groesseUeberschrift+"px; text-align:left\" value=\"toggle\" onclick=\"setOnOtherValue\(\'"+valButton+"\')\">"
+                                                                   +htmlFeld[ue]+"</button></th>")} } //symbolSchalter[ue]   
+                      }
+let testing="<td  style=\" background-color: "+htmlBackgroundFarbeSeitenliste+"; margin-top: 200px; color: "+htmlFarbSeiteSchrift+ ";font-size:"+schriftGroesseSeitenleiste+"px; vertical-align:top; text-align:center \" width=\""+breiteSeitenleiste+"\" rowspan=\""+(langeGesamt+1)+"\">"+seitenLeistenTest+"</td>"
+let testing2="<td  style=\" background-color: "+htmlBackgroundFarbeSeitenliste+"; margin-top: 200px; color: "+htmlFarbSeiteSchrift+ ";font-size:"+schriftGroesseSeitenleiste+"px; vertical-align:top; text-align:center \" width=\""+((((Number(breiteSeitenleiste))/8).toFixed(0)))+"\" rowspan=\""+(langeGesamt+1)+"\">"+seitenLeistenTest+"</td>"
+let  htmlTabUeber2_1=""
+for (let ue=0;ue<htmlSpalte1Weite.length;ue++) { let valButton="javascript." + instance + ".Tabellen@Liv."+dpVIS+".Spalte"+ue;
+   if(ue==htmlSpalte1Weite.length-1) {htmlTabUeber2_1=htmlTabUeber2_1.concat("<td width="+htmlSpalte1Weite[ue]+" align="+Feld1lAlign[ue]+">"+""
+                                                                   +"<button class=\"myButt"+dpVIS+"\" style\=\" border-radius: 4px; border:"+schalterUmrahmung+"px solid; background-color\: "+htmlBackgroundFarbeSeitenliste+"\; color: "
+                                                                   +htmlFarbTableColorUber+"; font-family: "+htmlSchriftart+"; font-size :"+groesseUeberschrift+"px; text-align:left\" value=\"toggle\" onclick=\"setOnOtherValue\(\'"+valButton+"\')\">"
+                                                                   +htmlFeld[ue]+"</button></td>"+testing)}
+   else{ if(ue==0){htmlTabUeber2_1=htmlTabUeber2_1.concat(testing2+"<td width="+htmlSpalte1Weite[ue]+" align="+Feld1lAlign[ue]+">"+""
+                                                                   +"<button class=\"myButt"+dpVIS+"\" style\=\" border-radius: 4px; border:"+schalterUmrahmung+"px solid; background-color\: "+htmlBackgroundFarbeSeitenliste+"\; color: "
+                                                                   +htmlFarbTableColorUber+"; font-family: "+htmlSchriftart+"; font-size :"+groesseUeberschrift+"px; text-align:left\" value=\"toggle\" onclick=\"setOnOtherValue\(\'"+valButton+"\')\">"
+                                                                   +htmlFeld[ue]+"</button></td>")
+ 
+ 
+   } else{
+    htmlTabUeber2_1=htmlTabUeber2_1.concat("<td width="+htmlSpalte1Weite[ue]+" align="+Feld1lAlign[ue]+">"+""
+                                                                   +"<button class=\"myButt"+dpVIS+"\" style\=\" border-radius: 4px; border:"+schalterUmrahmung+"px solid; background-color\: "+htmlBackgroundFarbeSeitenliste+"\; color: "
+                                                                   +htmlFarbTableColorUber+"; font-family: "+htmlSchriftart+"; font-size :"+groesseUeberschrift+"px; text-align:left\" value=\"toggle\" onclick=\"setOnOtherValue\(\'"+valButton+"\')\">"
+                                                                   +htmlFeld[ue]+"</button></td>")}}  }
+
+  let einmalAbstand=`</br>
+`
+ for (let f=0;f<abstandSeitentextVonOben;f++){
+     seitenLeistenTest=seitenLeistenTest+`<br>
+`}
+ for (let i=0;i<nameSeitenLeiste.length;i++){
+     seitenLeistenTest=seitenLeistenTest+nameSeitenLeiste[i]+`</br>
+` }
+ htmlTabUeber="";
+ if (ichWillSeitenLeiste) htmlTabUeber1=htmlTabUeber1+"<td  style=\" background-color: "+htmlBackgroundFarbeSeitenliste+"; margin-top: 200px; color: "+htmlFarbSeiteSchrift+ ";font-size:"+schriftGroesseSeitenleiste+"px; vertical-align:top; text-align:center \" width=\""+breiteSeitenleiste+"\" rowspan=\""+(langeGesamt+1)+"\">"+seitenLeistenTest+"</td>"
+ switch (mehrfachTabelle) { 
+   case 1: htmlTabUeber=htmlTabUeber1+htmlTabUeber2+htmlTabUeber3;  break;
+   case 2: htmlTabUeber=htmlTabUeber1+htmlTabUeber2+htmlTabUeber2_1+htmlTabUeber3; break;
+   case 3: htmlTabUeber=htmlTabUeber1+htmlTabUeber2+htmlTabUeber2_1+htmlTabUeber2_1+htmlTabUeber3; break;
+   case 4: htmlTabUeber=htmlTabUeber1+htmlTabUeber2+htmlTabUeber2_1+htmlTabUeber2+htmlTabUeber2_1+htmlTabUeber3; break;
+  };   
+  if (!UeberschriftSpalten) {htmlTabUeber=""}
+ 
+      tabelleFinish(); 
+      if (braucheEinJSON ) {setStateDelayed("javascript." + instance + ".Tabellen@Liv."+dpVIS+".JSONVis",JSON.stringify(makeJsonWidget),1000 )}
+     
+} // function ende
+ 
+//MAIN:
+ 
+schedule(mySchedule,  function () { 
+ writeHTML();
+ if (braucheEinFile) {writeFile(home, path ,htmlOut, function (error) { /* log('file written');*/  });}
+}); 
+setTimeout(function () {writeHTML();  }, 2050);                                 
+ 
+ function tabelleBind(){
+  
+   switch (mehrfachTabelle) { 
+ 
+   case 1: if(counter%2==0)   {htmlOut=htmlOut+"<tr cellspacing=\""+abstandZelle+"\"  bgcolor=\""+farbeGeradeZeilen+"\">";
+                               for(let u=0;u<val.length;u++){ htmlOut=htmlOut.concat("<td align="+Feld1lAlign[u]+">"+val[u]+"</td>");
+                                                            }  htmlOut=htmlOut.concat("</tr>");   break;
+ 
+                               } else   {htmlOut=htmlOut+"<tr cellspacing=\""+abstandZelle+"\"  bgcolor=\""+farbeUngeradeZeilen+"\">";
+                                         for(let u=0;u<val.length;u++){ htmlOut=htmlOut.concat("<td align="+Feld1lAlign[u]+">"+val[u]+"</td>");
+                                                                      }  htmlOut=htmlOut.concat("</tr>");   break;
+                               }
+   
+   case 2: if(counter%4==0){  if(counter%2==0)  {htmlOut = htmlOut+"<tr cellspacing=\""+abstandZelle+"\"  bgcolor=\""+farbeGeradeZeilen+"\">";
+                                                 for(let u=0;u<val.length;u++){ if(u<val.length-1) {htmlOut=htmlOut.concat("<td align="+Feld1lAlign[u]+">"+val[u]+"</td>");} else
+                                                                              {htmlOut=htmlOut.concat("<td style=\" border-right:"+trennungsLinie+"px solid "+farbetrennungsLinie+ ";\" align="+Feld1lAlign[u]+">"+val[u]+"</td>")}
+                                                                              }  
+                                                                           
+                                } else { for(let u=0;u<val.length;u++){ htmlOut=htmlOut.concat("<td align="+Feld1lAlign[u]+" style=\"color:"+htmlFarbFelderschrift2+"\">"+val[u]+"</td>");
+                                                                      }  htmlOut=htmlOut.concat("</tr>");  } break;
+                           } else {
+                             if(counter%2==0)  {htmlOut=htmlOut+"<tr cellspacing=\""+abstandZelle+"\"  bgcolor=\""+farbeUngeradeZeilen+"\">";
+                                                for(let u=0;u<val.length;u++){  if(u<val.length-1) {htmlOut=htmlOut.concat("<td align="+Feld1lAlign[u]+">"+val[u]+"</td>");} else
+                                                                             {htmlOut=htmlOut.concat("<td style=\" border-right:"+trennungsLinie+"px solid "+farbetrennungsLinie+ ";\" align="+Feld1lAlign[u]+">"+val[u]+"</td>")}
+                                                                             }  
+                                } else {        for(let u=0;u<val.length;u++){ htmlOut=htmlOut.concat("<td align="+Feld1lAlign[u]+" style=\"color:"+htmlFarbFelderschrift2+"\">"+val[u]+"</td>");
+                                                                             }  htmlOut=htmlOut.concat("</tr>");  }  break;}
+ 
+   case 3: if(counter%2==0)  {  if(counter%3==0 ) {htmlOut = htmlOut+"<tr cellspacing=\""+abstandZelle+"\"  bgcolor=\""+farbeGeradeZeilen+"\">";
+                                                   for(let u=0;u<val.length;u++){if(u<val.length-1) {htmlOut=htmlOut.concat("<td align="+Feld1lAlign[u]+">"+val[u]+"</td>");} else
+                                                                                {htmlOut=htmlOut.concat("<td style=\" border-right:"+trennungsLinie+"px solid "+farbetrennungsLinie+ ";\" align="+Feld1lAlign[u]+">"+val[u]+"</td>")}
+                                                                                                        }  
+                               } else { if(counter%3==1)  {for(let u=0;u<val.length;u++){  if(u<val.length-1) {htmlOut=htmlOut.concat("<td align="+Feld1lAlign[u]+" style=\"color:"+htmlFarbFelderschrift2+"\">"+val[u]+"</td>");} else
+                                                                                                              {htmlOut=htmlOut.concat("<td  align="+Feld1lAlign[u]+" style=\" border-right: "+trennungsLinie+"px solid "+farbetrennungsLinie+ "; color:"+htmlFarbFelderschrift2+"\">"+val[u]+"</td>")}
+                                                                                                        }  
+                                                          } else  { for(let u=0;u<val.length;u++){  htmlOut=htmlOut.concat("<td align="+Feld1lAlign[u]+">"+val[u]+"</td>");
+                                                                                                 }  htmlOut=htmlOut.concat("</tr>");  } }  break;
+                             } 
+                             else {
+                                if(counter%3==0 )  {htmlOut = htmlOut+"<tr cellspacing=\""+abstandZelle+"\"  bgcolor=\""+farbeUngeradeZeilen+"\">";
+                                                   for(let u=0;u<val.length;u++){ if(u<val.length-1) {htmlOut=htmlOut.concat("<td align="+Feld1lAlign[u]+">"+val[u]+"</td>");} else
+                                                                                                     {htmlOut=htmlOut.concat("<td style=\" border-right:"+trennungsLinie+"px solid "+farbetrennungsLinie+ ";\" align="+Feld1lAlign[u]+">"+val[u]+"</td>")}
+                                                                                                        }  
+                                                                                                        
+                             } else{ if(counter%3==1 )  { for(let u=0;u<val.length;u++){ if(u<val.length-1) {htmlOut=htmlOut.concat("<td align="+Feld1lAlign[u]+" style=\"color:"+htmlFarbFelderschrift2+"\">"+val[u]+"</td>");} else
+                                                                                                            {htmlOut=htmlOut.concat("<td  align="+Feld1lAlign[u]+" style=\" border-right: "+trennungsLinie+"px solid "+farbetrennungsLinie+ "; color:"+htmlFarbFelderschrift2+"\">"+val[u]+"</td>")}
+                                                                                                        }  
+                                                         } else {        for(let u=0;u<val.length;u++){ htmlOut=htmlOut.concat("<td align="+Feld1lAlign[u]+">"+val[u]+"</td>");
+                                                                                                      }  htmlOut=htmlOut.concat("</tr>"); } } break;
+                             }                                        
+ 
+ 
+                                
+        } //switch ende
+ 
+}
+ 
+ function tabelleAusbessern() {         // bessert mei mehrfachtabellen die nicht vollen zeilenn aus - bevor die unterüberschriften kommen
+ 
+switch (mehrfachTabelle) {
+        
+       case 1:    break;
+       case 2:    let helpMehrfach="</td>";
+                  for(let w=0;w<val.length;w++){helpMehrfach=helpMehrfach.concat("<td>&ensp;</td>")};helpMehrfach=helpMehrfach.concat("</tr>")
+                  if(counter%2==0)  htmlOut = htmlOut.replace(/<\/td>$/, helpMehrfach);
+                  break;
+       case 3:   let helpMehrfach2="</td>";
+                 for(let w=0;w<val.length;w++){helpMehrfach2=helpMehrfach2.concat("<td>&ensp;</td>")};helpMehrfach2=helpMehrfach2.concat("</tr>")
+                 if(counter%3==2)  htmlOut = htmlOut.replace(/<\/td>$/, "</td></tr>");
+                 if(counter%3==1)  htmlOut = htmlOut.replace(/<\/td>$/, helpMehrfach2);
+                 let helpMehrfach3="</td>";
+                 let helpMehrfach31="";for(let w=0;w<val.length;w++){helpMehrfach31=helpMehrfach31.concat("<td>&ensp;</td>")}
+                 for(let w=0;w<val.length;w++){if(w<val.length-1) {helpMehrfach3=helpMehrfach3.concat("<td>&ensp;</td>")} else
+                                                         {helpMehrfach3=helpMehrfach3.concat("<td style=\" border-right: "+trennungsLinie+"px solid "+farbetrennungsLinie+"\">&ensp;</td>"+helpMehrfach31)}
+                                                   };helpMehrfach3=helpMehrfach3.concat("</tr>")        
+                 if(counter%3==0)  htmlOut = htmlOut.replace(/<\/td>$/, helpMehrfach3);  break; }}
+ 
+ function tabelleFinish() {
+ 
+switch (mehrfachTabelle) {
+        
+       case 1:    break;
+       case 2:    let helpMehrfach="</td>";
+                  for(let w=0;w<val.length;w++){helpMehrfach=helpMehrfach.concat("<td>&ensp;</td>")};helpMehrfach=helpMehrfach.concat("</tr>")
+                  if(counter%2==0)  htmlOut = htmlOut.replace(/<\/td>$/, helpMehrfach);
+                  break;
+       case 3:   let helpMehrfach2="</td>";
+                 for(let w=0;w<val.length;w++){helpMehrfach2=helpMehrfach2.concat("<td>&ensp;</td>")};helpMehrfach2=helpMehrfach2.concat("</tr>")
+                 if(counter%3==2)  htmlOut = htmlOut.replace(/<\/td>$/, "</td></tr>");
+                 if(counter%3==1)  htmlOut = htmlOut.replace(/<\/td>$/, helpMehrfach2);
+                 let helpMehrfach3="</td>";
+                 let helpMehrfach31="";for(let w=0;w<val.length;w++){helpMehrfach31=helpMehrfach31.concat("<td>&ensp;</td>")}
+                 for(let w=0;w<val.length;w++){if(w<val.length-1) {helpMehrfach3=helpMehrfach3.concat("<td>&ensp;</td>")} else
+                                                         {helpMehrfach3=helpMehrfach3.concat("<td style=\" border-right: "+trennungsLinie+"px solid "+farbetrennungsLinie+"\">&ensp;</td>"+helpMehrfach31)}
+                                                   };helpMehrfach3=helpMehrfach3.concat("</tr>")        
+                 if(counter%3==0)  htmlOut = htmlOut.replace(/<\/td>$/, helpMehrfach3);  break; }
+     
+         var htmlUeber=    "<p style=\"color:"+htmlFarbUber+"; font-family:"+htmlSchriftart+"; font-size: "+htmlUEberFontGroesse+"; font-weight:"+htmlSchriftWeite+ "\">"+htmlFeldUeber+"&ensp;&ensp;Last Update: "+formatDate(getDateObject((new Date().getTime())), "SS:mm:ss");+"</p>"; 
+       var htmlUnter= "<div  style=\"color:"+htmlFarbUber+"; font-family:"+htmlSchriftart+"; font-size: 70%; text-align: center;\" >"+htmlFeldUeber+"&ensp;&ensp;Last Update: "+formatDate(getDateObject((new Date().getTime())), "SS:mm:ss");+"</div>";
+        
+        if (!htmlSignature) htmlUnter="";
+             var htmlOutVIS="";
+             if (htmlUberschrift) 
+                { zentriert ? htmlOutVIS=htmlZentriert+htmlUeber+htmlTabStyle+htmlTabUeber+htmlOut+"</table>"+htmlUnter+ buttonScript : htmlOutVIS=htmlUeber+htmlTabStyle+htmlTabUeber+htmlOut+"</table>"+htmlUnter+ buttonScript ;
+            } else {
+               zentriert ?  htmlOutVIS=htmlZentriert+htmlTabStyle+htmlTabUeber+htmlOut+"</table>"+htmlUnter+ buttonScript :  htmlOutVIS=htmlTabStyle+htmlTabUeber+htmlOut+"</table>"+htmlUnter+ buttonScript;
+            }
+                 
+ 
+  // log("bin raus aus tabelleBind");
+           if (braucheEinVISWidget)  setStateDelayed("javascript." + instance + ".Tabellen@Liv."+dpVIS+".HTMLTableVis", htmlOutVIS ,1000);
+ 
+ var htmlUnter= "<div  style=\"color:"+htmlFarbUber+"; font-family:"+htmlSchriftart+"; font-size: 80%;  text-align: center; \" >"+htmlFeldUeber+"&ensp;&ensp;Last Update: "+formatDate(getDateObject((new Date().getTime())), "SS:mm:ss");+"</div>"
+ 
+ if (!htmlSignature) htmlUnter="";
+  var htmlEnd="</table>"+htmlUnter+"</div></body>";
+ //mit oder ohne überschrift - zentriert oder links
+htmlUberschrift ? htmlOut=htmlStart+htmlUeber+htmlTabStyle+htmlTabUeber+htmlOut+htmlEnd : htmlOut=htmlStart+htmlTabStyle+htmlTabUeber+htmlOut+htmlEnd;
+ //log(htmlOut);
+ 
+ 
+}
+ 
+async function needDP(){
+   for(let s=0;s<schalterInSpaltenUeberschrift.length;s++){ if(schalterInSpaltenUeberschrift[s]){
+   if (!(await existsStateAsync("javascript." + instance + ".Tabellen@Liv."+dpVIS+".Spalte"+s))) {
+       await createStateAsync("Tabellen@Liv."+dpVIS+".Spalte"+s, false,{type: "boolean", name: "Schalter_Spalte"+s, role: "value", read: true, write: true, } ); } 
+     }}
+ 
+   if (!(await existsStateAsync("javascript." + instance + ".Tabellen@Liv."+dpVIS+".HTMLTableVis"))) {
+       await createStateAsync("Tabellen@Liv."+dpVIS+".HTMLTableVis", "empty",{type: "string", name: "HTML_Standard_Widget_mit_Binding", role: "value", read: true, write: true, } ); } 
+    if (!(await existsStateAsync("javascript." + instance + ".Tabellen@Liv."+dpVIS+".JSONVis"))) {
+       await createStateAsync("Tabellen@Liv."+dpVIS+".JSONVis", "",{type: "string", name: "JSON Format", role: "value", read: true, write: true, } ); }   
+   
+ 
+ 
+ 
+}
+  setTimeout(function () { 
+ 
+   let arrTriggerSchalter=[]
+   $("javascript." + instance + ".Tabellen@Liv."+dpVIS+".Spalte*").each(function(id, i) {  
+          arrTriggerSchalter.push(id) 
+   });
+ //  log(arrTriggerSchalter.toString())
+   on({id: arrTriggerSchalter, ack: false, change: "any"}, function (obj) { 
+     //  log(obj.id)
+     if (obj.id=="javascript." + instance + ".Tabellen@Liv."+dpVIS+".Spalte0") welcheSortierung=0;
+     if (obj.id=="javascript." + instance + ".Tabellen@Liv."+dpVIS+".Spalte1" )  welcheSortierung=1 ;
+     if (obj.id=="javascript." + instance + ".Tabellen@Liv."+dpVIS+".Spalte2" )  welcheSortierung=2; 
+     if (obj.id=="javascript." + instance + ".Tabellen@Liv."+dpVIS+".Spalte4")  welcheSortierung=3;
+     if (obj.id=="javascript." + instance + ".Tabellen@Liv."+dpVIS+".Spalte3" )  welcheSortierung=4;
+     if (obj.id=="javascript." + instance + ".Tabellen@Liv."+dpVIS+".Spalte5") welcheSortierung=5;
+     if (obj.id=="javascript." + instance + ".Tabellen@Liv."+dpVIS+".Spalte6" )  welcheSortierung=6; 
+     
+   //  log(String(mehrfachTabelle))
+  setTimeout(function () {  
+       writeHTML();
+       if (braucheEinFile) {writeFile(home, path ,htmlOut, function (error) { /* log('file written');*/  });}
+}, 900);
+    
+ 
+     
+   });}, 5050);
+ 
+ 
+//SORTIEREN
+function sortMe(myType,value){
+ 
+if(myType=="alpha" ){ myObject.sort(function (alpha, beta) {
+            if ((alpha[value].toString().toUpperCase()).trim() > (beta[value].toString().toUpperCase()).trim())
+               return 1;
+            if ((beta[value].toString().toUpperCase()).trim()> (alpha[value].toUpperCase().toString()).trim())
+               return -1;
+            return 0;
+           });}
+if(myType=="bool" ) {
+     
+  myObject .sort(function(x, y) { return x[value] - y[value] }); }       
+ 
+ 
+  if(myType=="num" )   { myObject.sort(function (alpha, beta) {
+                     return  beta[value] -alpha[value];   });}
+ 
+}
+ 
+ 
+ 
+ 
