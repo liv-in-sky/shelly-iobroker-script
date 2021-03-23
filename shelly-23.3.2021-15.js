@@ -59,7 +59,7 @@ const htmlBackgroundFarbeSeitenliste="blue";
 //BUTTON ÜBERSCHRIFT
 const htmlBackgroundButtonUeberschrift="transparent";
 //SUCHE
-let bkgroundSearch=3;                                    //   hintergrund für suche-ergebnis und flexboxen    // 1: carbon; 2: iobroker; 3: colored bubbles;  4: gradient farben von htmlFarbTableColorGradient1; 5: gradient farben wie farbeUngeradeZeilen; 6: heller hintergrund
+let bkgroundSearch=1;                                    //   hintergrund für suche-ergebnis und flexboxen    // 1: carbon; 2: iobroker; 3: colored bubbles;  4: gradient farben von htmlFarbTableColorGradient1; 5: gradient farben wie farbeUngeradeZeilen; 6: heller hintergrund
 const sucheEin=true;
 const sucheHoehe=25;
 //MEHRERE TABELLEN NEBENEINANDER
